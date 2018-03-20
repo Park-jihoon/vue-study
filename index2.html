@@ -1,2 +1,146 @@
-<!Doctype html>
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+
+
+<div id="app">
+  <p>obj.foo는 더이상 변하지 않습니다! "{{ obj.foo }}"</p>
+  <!-- obj.foo는 더이상 변하지 않습니다! -->
+  <button @click="obj.foo = 'baz'">Change it</button>
+</div>
+
+<div id="app-2">
+	<p>Using mustaches: {{ rawHtml }}</p>
+	<p>Using v-html directive: <span v-html="rawHtml"></span></p>
+	<div v-bind:id="rawHtml"></div>
+	<p> message.split('').reverse().join('')  : {{ rawHtml.split('').reverse().join('') }}</p>
+</div>
+
+
+<div id="example">
+  <p>원본 메시지: "{{ message }}"</p>
+  <p>뒤집히도록 계산된 메시지: "{{ reversedMessage }}"</p>
+  <p>뒤집히도록 계산된 메시지 메소드: "{{ reversedMessage2() }}"</p>
+  <p>뒤집히도록 계산된 메시지 (캐쉬됨): <span id='first'></span></p>
+  <p>뒤집히도록 계산된 메시지 메소드 (캐쉬되지않음) : <span id='second'></span></p>
+  <button @click='clicksa'>클릭 시 메시지를 뒤집음</button>
+</div>
+
+<div id='setterTest'>
+	<p>firstName : "{{ firstName }}"</p>
+	<p>lastName : "{{ lastName }}"</p>
+	<p>fullName : "{{ fullName }}"</p>
+	<button @click='fullName = `park Ji hoon`'>change park ji hoon</button>
+</div>
+
+
+<script type="text/javascript">
+	
+	
+	var obj = {
+	  foo: 'bar'
+	};
+
+	/*
+	Object.freeze ()를 사용하는 경우입니다. 이는 기존 속성이 변경되는 것을 막아 반응성 시스템이 추적할 수 없다는 것을 의미합니다.
+	*/
+	Object.freeze(obj);
+
+	new Vue({
+	  el: '#app',
+	  data () {
+		return {
+		  obj
+		}
+	  }
+	});
+	
+	/*
+	각 Vue 인스턴스는 데이터 관찰을 설정하고, 템플릿을 컴파일하고, 인스턴스를 DOM에 마운트하고, 데이터가 변경 될 때 DOM을 업데이트해야 할 때 일련의 초기화 단계를 거칩니다. 그 과정에서 사용자 정의 로직을 실행할 수있는 라이프사이클 훅 도 호출됩니다. 예를 들어, created 훅은 인스턴스가 생성된 후에 호출됩니다. 예:
+	*/
+	var app2 = new Vue({
+	  data: {
+		a: 1
+	  },
+	  created: function () {
+		// `this` 는 vm 인스턴스를 가리킵니다.
+		console.log('a is: ' + this.a)
+	  }
+	})
+
+	
+	/*
+	인스턴스 라이프사이클의 여러 단계에서 호출될 다른 훅도 있습니다. 그 예로 mounted,updated 및 destroyed가 있습니다. 모든 라이프사이클 훅은 this 컨텍스트가 호출하는 Vue 인스턴스를 가리키며 호출됩니다. Vue 세계에서 “컨트롤러”의 컨셉이 어디에 있는지 궁금할 수 있습니다. 답은 컨트롤러가 없습니다. 컴포넌트의 사용자 지정 로직은 이러한 라이프사이클 훅으로 분할됩니다.
+	*/
+	
+	/*
+	이중 중괄호(mustaches)는 HTML이 아닌 일반 텍스트로 데이터를 해석합니다. 실제 HTML을 출력하려면 v-html 디렉티브를 사용해야 합니다.
+	*/
+	
+	var rawHtml = `<span style="color:red;">This should be red.</span>`
+	new Vue({
+		el : `#app-2`,
+		data : {
+			rawHtml : rawHtml
+		}
+	});
+	
+	
+	var vm = new Vue({
+	  el: '#example',
+	  data: {
+		message: '안녕하세요'
+	  },
+	  computed: {
+		// 계산된 getter
+		reversedMessage: function () {
+		  // `this` 는 vm 인스턴스를 가리킵니다.
+		  return this.message.split('').reverse().join('') + new Date().getTime();
+		}
+	  },
+	  methods : {
+		reversedMessage2 : function() {
+			// `this` 는 vm 인스턴스를 가리킵니다.
+			/*
+			계산된 속성 대신 메소드와 같은 함수를 정의할 수 있습니다. 최종 결과에 대해 두가지 접근 방식은 서로 동일합니다. 하지만 차이점은 계산된 속성은 종속성에 따라 캐시된다는 것 입니다. 계산된 속성은 종속성 중 일부가 변경된 경우에만 다시 계산 됩니다. 이것은 message가 변경되지 않는 한, 계산된 속성인 reversedMessage에 대한 다중 접근은 함수를 다시 수행할 필요 없이 이전에 계산된 결과를 즉시 반환한다는 것을 의미합니다.
+			*/
+			return this.message.split('').reverse().join('') + new Date().getTime();
+		},
+		clicksa : function() {
+			let first = document.getElementById('first');
+			first.textContent = this.reversedMessage;
+			
+			let second = document.getElementById('second');
+			second.textContent = this.reversedMessage2();
+			
+			this.message = '요세하녕안';
+		}
+	  }
+	});
+	
+	var setterTest = new Vue({
+		el : '#setterTest',
+		data : {
+			firstName: 'Foo',
+			lastName: 'Bar'
+			/*
+				계산된 속성과 같은 이름의 data가 존재하면 안됩니다.
+			*/
+		},
+		computed : {
+			/*
+				계산된 속성은 기본적으로 getter만 가지고 있지만, 필요한 경우 setter를 제공할 수 있습니다.
+			*/
+			fullName : {
+				get : function() {
+					return this.firstName + ' ' + this.lastName;
+				},
+				set : function(newValue) {
+					var names = newValue.split(' ');
+					console.log(newValue);
+					this.firstName = names[0];
+					this.lastName = names[names.length - 1];
+				}
+			}
+		}
+	});
+	
+</script>
